@@ -199,16 +199,19 @@ func writeMetadataKeys(username string, metadata providers.Metadata) error {
 
 	akd, err := authorized_keys_d.Open(usr, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to open for %v: %v", usr, err)
 	}
 	defer akd.Close()
 
 	ks := strings.Join(metadata.SshKeys, "\n") + "\n"
 	if err := akd.Add("coreos-metadata", []byte(ks), true, true); err != nil {
-		return err
+		return fmt.Errorf("unable to add key: %v", err)
 	}
 
-	return akd.Sync()
+	if err := akd.Sync(); err != nil {
+		return fmt.Errorf("unable to sync keys: %v", err)
+	}
+	return nil
 }
 
 func writeHostname(path string, metadata providers.Metadata) error {
